@@ -1,0 +1,66 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "app1-span-appochka-euName": {
+      "value": "app-1a-splan"
+    },
+    "app2-span-appochka-euName": {
+      "value": "app-2a-splan-1a"
+    },
+    "stagingSlotNameAppOne": {
+      "value": "slot-1app-one"
+    },
+    "stagingSlotNameAppTwo": {
+      "value": "slot-2app-one"
+    },
+    "uniqueDnsName": {
+      "value": "selfarianone012"
+    },
+    "app2-span-appochka-euSkuName": {
+      "value": "S1"
+    },
+    "sqlServerPrimaryName": {
+      "value": "sqlfrom-primary"
+    },
+    "sqlServerPrimaryAdminUsername": {
+      "value": "username1"
+    },
+    "sqlServerSecondaryName": {
+      "value": "sqlfrom-second"
+    },
+    "sqlServerSecondaryRegion": {
+      "value": "Australia East"
+    },
+    "sqlServerSecondaryAdminUsername": {
+      "value": "usename2"
+    },
+    "sqlFailoverGroupName": {
+      "value": "itsfailovergroupoh"
+    },
+    "sqlServerPrimaryAdminPassword": {
+      "value": "yourpass"
+    },
+    "sqlServerSecondaryAdminPassword": {
+      "value": "yourpass"
+    },
+    "apipublisherEmail": {
+      "value": "your@mail.com"
+    },
+    "apipublisherName": {
+      "value": "publishname"
+    },
+    "keyVaultName": {
+      "value": "keywaultname"
+    },
+    "keyobjectId": {
+      "value": "objID"
+    },
+    "keysecretName": {
+      "value": "keyvaultname"
+    },
+    "keysecretValue": {
+      "value": "password"
+    }
+  }
+}

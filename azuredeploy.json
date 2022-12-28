@@ -1,0 +1,746 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "app1-span-appochka-euName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stagingSlotNameAppOne": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stagingSlotNameAppTwo": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uniqueDnsName": {
+      "type": "string",
+      "metadata": {
+        "description": "Relative DNS name for the traffic manager profile, must be globally unique."
+      }
+    },
+    "apiManagementServiceName": {
+      "type": "string",
+      "defaultValue": "[format('apiservice{0}', uniqueString(resourceGroup().id))]",
+      "metadata": {
+        "description": "The name of the API Management service instance"
+      }
+    },
+    "apipublisherEmail": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "The email address of the owner of the service"
+      }
+    },
+    "apipublisherName": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "The name of the owner of the service"
+      }
+    },
+    "apisku": {
+      "type": "string",
+      "defaultValue": "Developer",
+      "allowedValues": [
+        "Developer",
+        "Standard",
+        "Premium"
+      ],
+      "metadata": {
+        "description": "The pricing tier of this API Management service"
+      }
+    },
+    "apiskuCount": {
+      "type": "int",
+      "defaultValue": 1,
+      "allowedValues": [
+        1,
+        2
+      ],
+      "metadata": {
+        "description": "The instance size of this API Management service."
+      }
+    },
+    "app1-span-appochka-euSkuName": {
+      "type": "string",
+      "defaultValue": "S1",
+      "allowedValues": [
+        "F1",
+        "D1",
+        "B1",
+        "B2",
+        "B3",
+        "S1",
+        "S2",
+        "S3",
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "metadata": {
+        "description": "Describes plan's pricing tier and capacity. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+      }
+    },
+    "sqlServerPrimaryName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the primary SQL Server."
+      }
+    },
+    "sqlServerPrimaryAdminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The administrator username of the primary SQL Server."
+      }
+    },
+    "sqlServerPrimaryAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The administrator password of the primary SQL Server."
+      }
+    },
+    "sqlServerSecondaryName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the secondary SQL Server."
+      }
+    },
+    "sqlServerSecondaryRegion": {
+      "type": "string",
+      "metadata": {
+        "description": "The location of the secondary SQL Server."
+      }
+    },
+    "sqlServerSecondaryAdminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The administrator username of the secondary SQL Server."
+      }
+    },
+    "sqlServerSecondaryAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The administrator password of the secondary SQL Server."
+      }
+    },
+    "sqlFailoverGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the failover group."
+      }
+    },
+    "app2-span-appochka-euName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "app2-span-appochka-euSkuName": {
+      "type": "string",
+      "defaultValue": "S1",
+      "allowedValues": [
+        "F1",
+        "D1",
+        "B1",
+        "B2",
+        "B3",
+        "S1",
+        "S2",
+        "S3",
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "metadata": {
+        "description": "Describes plan's pricing tier and capacity. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+      }
+    },
+    "keyVaultName": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the name of the key vault."
+      }
+    },
+    "keylocation": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Specifies the Azure location where the key vault should be created."
+      }
+    },
+    "keyenabledForDeployment": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Specifies whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the key vault."
+      }
+    },
+    "keyenabledForDiskEncryption": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Specifies whether Azure Disk Encryption is permitted to retrieve secrets from the vault and unwrap keys."
+      }
+    },
+    "keyenabledForTemplateDeployment": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Specifies whether Azure Resource Manager is permitted to retrieve secrets from the key vault."
+      }
+    },
+    "keytenantId": {
+      "type": "string",
+      "defaultValue": "6c51c659-9d52-41af-81f7-dde16380e813",
+      "metadata": {
+        "description": "Specifies the Azure Active Directory tenant ID that should be used for authenticating requests to the key vault. Get it by using Get-AzSubscription cmdlet."
+      }
+    },
+    "keyobjectId": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies. Get it by using Get-AzADUser or Get-AzADServicePrincipal cmdlets."
+      }
+    },
+    "keyskuName": {
+      "type": "string",
+      "defaultValue": "standard",
+      "allowedValues": [
+        "standard",
+        "premium"
+      ],
+      "metadata": {
+        "description": "Specifies whether the key vault is a standard vault or a premium vault."
+      }
+    },
+    "keysecretName": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the name of the secret that you want to create."
+      }
+    },
+    "keysecretValue": {
+      "type": "secureString",
+      "metadata": {
+        "description": "Specifies the value of the secret that you want to create."
+      }
+    },
+    "storagearmone2022Type": {
+      "type": "string",
+      "defaultValue": "Standard_GRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_ZRS",
+        "Standard_GRS",
+        "Standard_RAGRS",
+        "Premium_LRS"
+      ]
+    }
+  },
+  "variables": {
+    "app1-webapochka-euName": "[concat('app1-webapochka-eu', uniqueString(resourceGroup().id))]",
+    "app2-webapochka-euName": "[concat('app2-webapochka-eu', uniqueString(resourceGroup().id))]",
+    "sqlDatabaseName": "MyData",
+    "sqlDatabaseServiceObjective": "Basic",
+    "sqlDatabaseEdition": "Basic",
+    "storagearmone2022Name": "[concat('strgearmone', uniqueString(resourceGroup().id))]" },
+  "resources": [
+    {
+      "name": "[parameters('app1-span-appochka-euName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-08-01",
+      "sku": {
+        "name": "[parameters('app1-span-appochka-euSkuName')]"
+      },
+      "dependsOn": [],
+      "tags": {
+        "displayName": "app1-span-appochka-eu"
+      },
+      "properties": {
+        "name": "[parameters('app1-span-appochka-euName')]",
+        "numberOfWorkers": 1
+      }
+    },
+    {
+      "name": "[variables('app1-webapochka-euName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-08-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('app1-span-appochka-euName'))]"
+      ],
+      "tags": {
+        "[concat('hidden-related:', resourceId('Microsoft.Web/serverfarms', parameters('app1-span-appochka-euName')))]": "Resource",
+        "displayName": "app1-webapochka-eu"
+      },
+      "properties": {
+        "name": "[variables('app1-webapochka-euName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('app1-span-appochka-euName'))]"
+      },
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('app1-webapochka-euName'))]"
+          ],
+          "tags": {
+            "displayName": "setting-one-app1"
+          },
+          "properties": {
+            "key1": "value1",
+            "key2": "value2"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "[parameters('stagingSlotNameAppOne')]",
+          "type": "slots",
+          "tags": {
+            "displayName": "webApp-one-Slots"
+          },
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('app1-webapochka-euName'))]"
+          ],
+          "properties": {
+          },
+          "resources": []
+        }
+      ]
+    },
+    {
+      "name": "[concat(parameters('app1-span-appochka-euName'), '-', resourceGroup().name)]",
+      "type": "Microsoft.Insights/autoscalesettings",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2014-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('app1-span-appochka-euName'))]"
+      ],
+      "tags": {
+        "[concat('hidden-link:', resourceId('Microsoft.Web/serverfarms', parameters('app1-span-appochka-euName')))]": "Resource",
+        "displayName": "insight-for-app1 AutoScale"
+      },
+      "properties": {
+        "name": "[concat(parameters('app1-span-appochka-euName'), '-', resourceGroup().name)]",
+        "profiles": [
+          {
+            "name": "Default",
+            "capacity": {
+              "minimum": 1,
+              "maximum": 2,
+              "default": 1
+            },
+            "rules": [
+              {
+                "metricTrigger": {
+                  "metricName": "CpuPercentage",
+                  "metricResourceUri": "[resourceId('Microsoft.Web/serverfarms', parameters('app1-span-appochka-euName'))]",
+                  "timeGrain": "PT1M",
+                  "statistic": "Average",
+                  "timeWindow": "PT10M",
+                  "timeAggregation": "Average",
+                  "operator": "GreaterThan",
+                  "threshold": 80
+                },
+                "scaleAction": {
+                  "direction": "Increase",
+                  "type": "ChangeCount",
+                  "value": 1,
+                  "cooldown": "PT10M"
+                }
+              },
+              {
+                "metricTrigger": {
+                  "metricName": "CpuPercentage",
+                  "metricResourceUri": "[resourceId('Microsoft.Web/serverfarms', parameters('app1-span-appochka-euName'))]",
+                  "timeGrain": "PT1M",
+                  "statistic": "Average",
+                  "timeWindow": "PT1H",
+                  "timeAggregation": "Average",
+                  "operator": "LessThan",
+                  "threshold": 60
+                },
+                "scaleAction": {
+                  "direction": "Decrease",
+                  "type": "ChangeCount",
+                  "value": 1,
+                  "cooldown": "PT1H"
+                }
+              }
+            ]
+          }
+        ],
+        "enabled": false,
+        "targetResourceUri": "[resourceId('Microsoft.Web/serverfarms', parameters('app1-span-appochka-euName'))]"
+      }
+    },
+    {
+      "name": "insight-for-app1",
+      "type": "Microsoft.Insights/components",
+      "location": "East US",
+      "apiVersion": "2014-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('app1-webapochka-euName'))]"
+      ],
+      "tags": {
+        "displayName": "Component insight-for-app1"
+      },
+      "properties": {
+        "applicationId": "[resourceId('Microsoft.Web/sites', variables('app1-webapochka-euName'))]"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers",
+      "kind": "v12.0",
+      "name": "[parameters('sqlServerPrimaryName')]",
+      "apiVersion": "2022-05-01-preview",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "administratorLogin": "[parameters('sqlServerPrimaryAdminUsername')]",
+        "administratorLoginPassword": "[parameters('sqlServerPrimaryAdminPassword')]",
+        "version": "12.0"
+      },
+      "resources": [
+        {
+          "name": "AllowAllWindowsAzureIps",
+          "type": "firewallrules",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2022-05-01-preview",
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', parameters('sqlServerPrimaryName'))]"
+          ],
+          "properties": {
+            "startIpAddress": "195.160.232.0",
+            "endIpAddress": "195.160.235.255"
+          }
+        },
+        {
+          "apiVersion": "2022-05-01-preview",
+          "type": "failoverGroups",
+          "name": "[parameters('sqlFailoverGroupName')]",
+          "properties": {
+            "serverName": "[parameters('sqlServerPrimaryName')]",
+            "partnerServers": [
+              {
+                "id": "[resourceId('Microsoft.Sql/servers', parameters('sqlServerSecondaryName'))]"
+              }
+            ],
+            "readWriteEndpoint": {
+              "failoverPolicy": "Automatic",
+              "failoverWithDataLossGracePeriodMinutes": 60
+            },
+            "readOnlyEndpoint": {
+              "failoverPolicy": "Disabled"
+            },
+            "databases": [
+              "[resourceId('Microsoft.Sql/servers/databases', parameters('sqlServerPrimaryName'), variables('sqlDatabaseName'))]"
+            ]
+          },
+          "dependsOn": [
+            "[parameters('sqlServerPrimaryName')]",
+            "[resourceId('Microsoft.Sql/servers/databases', parameters('sqlServerPrimaryName'), variables('sqlDatabaseName'))]",
+            "[resourceId('Microsoft.Sql/servers', parameters('sqlServerSecondaryName'))]"
+          ]
+        },
+        {
+          "name": "[variables('sqlDatabaseName')]",
+          "type": "databases",
+          "apiVersion": "2022-05-01-preview",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[parameters('sqlServerPrimaryName')]"
+          ],
+          "properties": {
+            "edition": "[variables('sqlDatabaseEdition')]",
+            "requestedServiceObjectiveName": "[variables('sqlDatabaseServiceObjective')]"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Sql/servers",
+      "kind": "v12.0",
+      "name": "[parameters('sqlServerSecondaryName')]",
+      "apiVersion": "2022-05-01-preview",
+      "location": "[parameters('sqlServerSecondaryRegion')]",
+      "properties": {
+        "administratorLogin": "[parameters('sqlServerSecondaryAdminUsername')]",
+        "administratorLoginPassword": "[parameters('sqlServerSecondaryAdminPassword')]",
+        "version": "12.0"
+      }
+    },
+    {
+      "type": "Microsoft.Network/trafficmanagerprofiles",
+      "apiVersion": "2018-04-01",
+      "name": "ExternalEndpointBortnychuk",
+      "location": "global",
+      "properties": {
+        "profileStatus": "Enabled",
+        "trafficRoutingMethod": "Performance",
+        "dnsConfig": {
+          "relativeName": "[parameters('uniqueDnsName')]",
+          "ttl": 30
+        },
+        "monitorConfig": {
+          "protocol": "HTTPS",
+          "port": 443,
+          "path": "/",
+          "expectedStatusCodeRanges": [
+            {
+              "min": 200,
+              "max": 202
+            },
+            {
+              "min": 301,
+              "max": 302
+            }
+          ]
+        },
+        "endpoints": [
+          {
+            "type": "Microsoft.Network/TrafficManagerProfiles/ExternalEndpoints",
+            "name": "endpoint1",
+            "properties": {
+              "target": "www.microsoft.com",
+              "endpointStatus": "Enabled",
+              "endpointLocation": "northeurope"
+            }
+          },
+          {
+            "type": "Microsoft.Network/TrafficManagerProfiles/ExternalEndpoints",
+            "name": "endpoint2",
+            "properties": {
+              "target": "docs.microsoft.com",
+              "endpointStatus": "Enabled",
+              "endpointLocation": "southcentralus"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('app2-span-appochka-euName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-08-01",
+      "sku": {
+        "name": "[parameters('app2-span-appochka-euSkuName')]"
+      },
+      "dependsOn": [],
+      "tags": {
+        "displayName": "app2-span-appochka-eu"
+      },
+      "properties": {
+        "name": "[parameters('app2-span-appochka-euName')]",
+        "numberOfWorkers": 1
+      }
+    },
+    {
+      "name": "[variables('app2-webapochka-euName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-08-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('app2-span-appochka-euName'))]"
+      ],
+      "tags": {
+        "[concat('hidden-related:', resourceId('Microsoft.Web/serverfarms', parameters('app2-span-appochka-euName')))]": "Resource",
+        "displayName": "app2-webapochka-eu"
+      },
+      "properties": {
+        "name": "[variables('app2-webapochka-euName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('app2-span-appochka-euName'))]"
+      },
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('app2-webapochka-euName'))]"
+          ],
+          "tags": {
+            "displayName": "setting-one-app2"
+          },
+          "properties": {
+            "key1": "value1",
+            "key2": "value2"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "[parameters('stagingSlotNameAppTwo')]",
+          "type": "slots",
+          "tags": {
+            "displayName": "webApp-two-Slots"
+          },
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('app2-webapochka-euName'))]"
+          ],
+          "properties": {
+          },
+          "resources": []
+        }
+      ]
+    },
+    {
+      "name": "[concat(parameters('app2-span-appochka-euName'), '-', resourceGroup().name)]",
+      "type": "Microsoft.Insights/autoscalesettings",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2014-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('app2-span-appochka-euName'))]"
+      ],
+      "tags": {
+        "[concat('hidden-link:', resourceId('Microsoft.Web/serverfarms', parameters('app2-span-appochka-euName')))]": "Resource",
+        "displayName": "insight-for-app2 AutoScale"
+      },
+      "properties": {
+        "name": "[concat(parameters('app2-span-appochka-euName'), '-', resourceGroup().name)]",
+        "profiles": [
+          {
+            "name": "Default",
+            "capacity": {
+              "minimum": 1,
+              "maximum": 2,
+              "default": 1
+            },
+            "rules": [
+              {
+                "metricTrigger": {
+                  "metricName": "CpuPercentage",
+                  "metricResourceUri": "[resourceId('Microsoft.Web/serverfarms', parameters('app2-span-appochka-euName'))]",
+                  "timeGrain": "PT1M",
+                  "statistic": "Average",
+                  "timeWindow": "PT10M",
+                  "timeAggregation": "Average",
+                  "operator": "GreaterThan",
+                  "threshold": 80
+                },
+                "scaleAction": {
+                  "direction": "Increase",
+                  "type": "ChangeCount",
+                  "value": 1,
+                  "cooldown": "PT10M"
+                }
+              },
+              {
+                "metricTrigger": {
+                  "metricName": "CpuPercentage",
+                  "metricResourceUri": "[resourceId('Microsoft.Web/serverfarms', parameters('app2-span-appochka-euName'))]",
+                  "timeGrain": "PT1M",
+                  "statistic": "Average",
+                  "timeWindow": "PT1H",
+                  "timeAggregation": "Average",
+                  "operator": "LessThan",
+                  "threshold": 60
+                },
+                "scaleAction": {
+                  "direction": "Decrease",
+                  "type": "ChangeCount",
+                  "value": 1,
+                  "cooldown": "PT1H"
+                }
+              }
+            ]
+          }
+        ],
+        "enabled": false,
+        "targetResourceUri": "[resourceId('Microsoft.Web/serverfarms', parameters('app2-span-appochka-euName'))]"
+      }
+    },
+    {
+      "name": "insight-for-app2",
+      "type": "Microsoft.Insights/components",
+      "location": "East US",
+      "apiVersion": "2014-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('app2-webapochka-euName'))]"
+      ],
+      "tags": {
+        "displayName": "Component insight-for-app2"
+      },
+      "properties": {
+        "applicationId": "[resourceId('Microsoft.Web/sites', variables('app2-webapochka-euName'))]"
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service",
+      "apiVersion": "2021-08-01",
+      "name": "[parameters('apiManagementServiceName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "[parameters('apisku')]",
+        "capacity": "[parameters('apiskuCount')]"
+      },
+      "properties": {
+        "publisherEmail": "[parameters('apipublisherEmail')]",
+        "publisherName": "[parameters('apipublisherName')]"
+      }
+    },
+    {
+      "name": "[variables('storagearmone2022Name')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-01-01",
+      "sku": {
+        "name": "[parameters('storagearmone2022Type')]"
+      },
+      "dependsOn": [],
+      "tags": {
+        "displayName": "storagearmone2022"
+      },
+      "kind": "Storage"
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2021-11-01-preview",
+      "name": "[parameters('keyVaultName')]",
+      "location": "[parameters('keylocation')]",
+      "properties": {
+        "enabledForDeployment": "[parameters('keyenabledForDeployment')]",
+        "enabledForDiskEncryption": "[parameters('keyenabledForDiskEncryption')]",
+        "enabledForTemplateDeployment": "[parameters('keyenabledForTemplateDeployment')]",
+        "tenantId": "[parameters('keytenantId')]",
+        "accessPolicies": [
+          {
+            "objectId": "[parameters('keyobjectId')]",
+            "tenantId": "[parameters('keytenantId')]",
+            "permissions": {
+              "keys": [ "all" ],
+              "secrets": [ "all" ],
+              "certificates": [ "all" ]
+            }
+          }
+        ],
+        "sku": {
+          "name": "[parameters('keyskuName')]",
+          "family": "A"
+        },
+        "networkAcls": {
+          "defaultAction": "Allow",
+          "bypass": "AzureServices"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2021-11-01-preview",
+      "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('keysecretName'))]",
+      "properties": {
+        "value": "[parameters('keysecretValue')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ]
+    }
+  ],
+  "outputs": {}
+}
